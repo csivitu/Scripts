@@ -9,7 +9,7 @@ Necessary scripts pertaining to various tasks.
   * Set up Node.js, MongoDB, pm2
   
  - Bulk Email Sending
- 
+  * For Font Color, Size, etc, enclose stuff in a span element to avoid weird results
  
  # Contributing
  
