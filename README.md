@@ -10,6 +10,8 @@ Necessary scripts pertaining to various tasks.
   
  - Bulk Email Sending
  
+ - Monitoring
+  * script to monitor docker containers 
  
  # Contributing
  
