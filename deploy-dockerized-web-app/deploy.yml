@@ -12,10 +12,10 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           USER: ${{ secrets.USER }}
           IP: ${{ secrets.IP }}
-          ENV: ${{ secrets.ENV }}
+          DOTENV: ${{ secrets.DOTENV }}
           APP_NAME: ${{ github.event.repository.name }}
         run: |
-          echo "$ENV" > .env
+          echo "$DOTENV" > .env
           export $(grep '^PORT' .env | xargs)
           which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y  )
           which rsync || ( apt-get update -y && apt-get install rsync -y )
@@ -31,4 +31,3 @@ jobs:
           ( docker stop $APP_NAME || : ) && \
           ( docker rm $APP_NAME || : ) && \
           docker run -dp $PORT:$PORT --name $APP_NAME --restart unless-stopped $APP_NAME"
-          unset $(grep '^PORT' .env | sed -E 's/(.*)=.*/\1/' | xargs)
