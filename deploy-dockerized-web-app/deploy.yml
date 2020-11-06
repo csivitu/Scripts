@@ -1,4 +1,4 @@
-name: deploy dockerized app
+name: deploy dockerized web app
 on:
   push:
     branches: [ master ]
@@ -14,9 +14,9 @@ jobs:
           IP: ${{ secrets.IP }}
           ENV: ${{ secrets.ENV }}
           APP_NAME: ${{ secrets.APP_NAME }}
-          PORT: ${{ secrets.PORT }}
         run: |
           echo "$ENV" > .env
+          export $(grep '^PORT' .env | xargs)
           which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y  )
           which rsync || ( apt-get update -y && apt-get install rsync -y )
           echo "$PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
@@ -31,3 +31,4 @@ jobs:
           ( docker stop $APP_NAME || : ) && \
           ( docker rm $APP_NAME || : ) && \
           docker run -dp $PORT:$PORT --name $APP_NAME --restart unless-stopped $APP_NAME"
+          unset $(grep '^PORT' .env | sed -E 's/(.*)=.*/\1/' | xargs)
