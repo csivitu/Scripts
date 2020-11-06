@@ -17,17 +17,18 @@ jobs:
         run: |
           echo "$DOTENV" > .env
           export $(grep '^PORT' .env | xargs)
-          which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y  )
-          which rsync || ( apt-get update -y && apt-get install rsync -y )
+          which ssh-agent || ( apt-get update && \
+          DEBIAN_FRONTEND=noninteractive apt-get install openssh-client -y  )
+          which rsync || ( apt-get update && \
+          DEBIAN_FRONTEND=noninteractive apt-get install rsync -y )
+          eval $(ssh-agent)
           echo "$PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           ssh-keyscan $IP > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-          ssh $USER@$IP "mkdir $APP_NAME || :"
           rsync -auz ./ $USER@$IP:./$APP_NAME
-          ssh $USER@$IP "cd $APP_NAME && \
-          docker build . -t $APP_NAME && \
+          ssh $USER@$IP "docker build $APP_NAME -t ${APP_NAME,,} && \
           ( docker stop $APP_NAME || : ) && \
           ( docker rm $APP_NAME || : ) && \
-          docker run -dp $PORT:$PORT --name $APP_NAME --restart unless-stopped $APP_NAME"
+          docker run -dp $PORT:$PORT --name $APP_NAME --restart unless-stopped ${APP_NAME,,}"
