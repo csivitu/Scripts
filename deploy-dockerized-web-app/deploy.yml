@@ -1,0 +1,33 @@
+name: deploy dockerized web app
+on:
+  push:
+    branches: [ master ]
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          USER: ${{ secrets.USER }}
+          IP: ${{ secrets.IP }}
+          DOTENV: ${{ secrets.DOTENV }}
+          APP_NAME: ${{ github.event.repository.name }}
+        run: |
+          echo "$DOTENV" > .env
+          export $(grep '^PORT' .env | xargs)
+          which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y  )
+          which rsync || ( apt-get update -y && apt-get install rsync -y )
+          echo "$PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan $IP > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          ssh $USER@$IP "mkdir $APP_NAME || :"
+          rsync -auz ./ $USER@$IP:./$APP_NAME
+          ssh $USER@$IP "cd $APP_NAME && \
+          docker build . -t $APP_NAME && \
+          ( docker stop $APP_NAME || : ) && \
+          ( docker rm $APP_NAME || : ) && \
+          docker run -dp $PORT:$PORT --name $APP_NAME --restart unless-stopped $APP_NAME"
