@@ -13,7 +13,7 @@ jobs:
           USER: ${{ secrets.USER }}
           IP: ${{ secrets.IP }}
           ENV: ${{ secrets.ENV }}
-          APP_NAME: ${{ secrets.APP_NAME }}
+          APP_NAME: ${{ github.event.repository.name }}
         run: |
           echo "$ENV" > .env
           export $(grep '^PORT' .env | xargs)
